@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Membership\JoinMembershipRequest;
 use App\Http\Requests\Membership\RenewMembershipRequest;
+use App\Http\Requests\Membership\ApplyMembershipRequest;
 use App\Http\Resources\UserMembershipResource;
 use App\Models\MembershipPlan;
 use App\Models\UserMembership;
@@ -12,6 +13,7 @@ use App\Services\TransactionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
 
 class UserMembershipController extends Controller
 {
@@ -167,6 +169,89 @@ class UserMembershipController extends Controller
             'success' => true,
             'message' => 'Membership history retrieved successfully',
             'data' => UserMembershipResource::collection($memberships),
+        ]);
+    }
+
+    /**
+     * Apply for membership with photo upload.
+     */
+    public function apply(ApplyMembershipRequest $request): JsonResponse
+    {
+        $plan = MembershipPlan::findOrFail($request->membership_plan_id);
+        $user = $request->user();
+
+        // Check if user already has a pending application
+        $pendingApplication = $user->userMemberships()
+            ->where('application_status', 'pending')
+            ->first();
+
+        if ($pendingApplication) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You already have a pending membership application',
+            ], 400);
+        }
+
+        // Handle photo upload
+        $photoUrl = null;
+        if ($request->hasFile('photo')) {
+            $photo = $request->file('photo');
+            $photoName = 'membership_photos/' . time() . '_' . $user->id . '.' . $photo->getClientOriginalExtension();
+            $photo->storeAs('public', $photoName);
+            $photoUrl = $photoName;
+        }
+
+        $membership = UserMembership::create([
+            'user_id' => $user->id,
+            'membership_plan_id' => $plan->id,
+            'start_date' => now(), // Set current date for application
+            'end_date' => now()->addDays($plan->duration_days), // Set end date based on plan
+            'status' => 'pending',
+            'application_status' => 'pending',
+            'photo_url' => $photoUrl,
+            'application_notes' => $request->application_notes,
+            'amount_paid' => $plan->is_volunteer_based ? 0 : $plan->price,
+            'payment_method' => $plan->is_volunteer_based ? 'volunteer' : 'online',
+            'transaction_id' => $plan->is_volunteer_based ? null : 'TXN_' . time(),
+        ]);
+
+        // Send notification to admin about new application
+        NotificationService::sendSystemNotificationToAll(
+            'New Membership Application',
+            "New membership application received from {$user->name} for {$plan->name} tier.",
+            ['type' => 'membership_application', 'user_id' => $user->id, 'membership_id' => $membership->id]
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Membership application submitted successfully',
+            'data' => new UserMembershipResource($membership->load('membershipPlan')),
+        ], 201);
+    }
+
+    /**
+     * Get user's membership application status.
+     */
+    public function applicationStatus(Request $request): JsonResponse
+    {
+        $application = $request->user()
+            ->userMemberships()
+            ->with(['membershipPlan', 'approvedBy', 'rejectedBy'])
+            ->where('application_status', '!=', null)
+            ->latest()
+            ->first();
+
+        if (!$application) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No membership application found',
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Application status retrieved successfully',
+            'data' => new UserMembershipResource($application),
         ]);
     }
 }

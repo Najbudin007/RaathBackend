@@ -5,7 +5,7 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class MembershipPlanResource extends JsonResource
+class SponsorshipTierResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -16,20 +16,13 @@ class MembershipPlanResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'project_id' => $this->project_id,
             'name' => $this->name,
-            'tier_name' => $this->tier_name,
-            'color_theme' => $this->color_theme,
             'description' => $this->description,
-            'price' => $this->price,
-            'duration_days' => $this->duration_days,
+            'amount' => $this->amount,
             'benefits' => $this->benefits,
-            'detailed_benefits' => $this->detailed_benefits,
-            'seating_priority' => $this->seating_priority,
-            'annual_kit_type' => $this->annual_kit_type,
-            'newsletter_frequency' => $this->newsletter_frequency,
-            'events_access' => $this->events_access,
-            'certificate_type' => $this->certificate_type,
-            'is_volunteer_based' => $this->is_volunteer_based,
+            'inscription_type' => $this->inscription_type,
+            'gifts' => $this->gifts,
             'is_active' => $this->is_active,
             'sort_order' => $this->sort_order,
             'created_at' => $this->created_at,
