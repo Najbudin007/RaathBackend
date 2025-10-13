@@ -50,6 +50,41 @@ return [
             'url' => 'admin.memberships.index',
         ],
         [
+            'title' => 'Pages',
+            'icon' => 'ri-file-text-line',
+            'url' => 'admin.cms-pages.index',
+        ],
+        [
+            'title' => 'Subscribers',
+            'icon' => 'ri-mail-line',
+            'url' => 'admin.subscribers.index',
+        ],
+        [
+            'title' => 'Donations',
+            'icon' => 'ri-hand-heart-line',
+            'url' => 'admin.donations.index',
+        ],
+        [
+            'title' => 'Sponsorship Tiers',
+            'icon' => 'ri-award-line',
+            'url' => 'admin.sponsorship-tiers.index',
+        ],
+        [
+            'title' => 'Budget Breakdowns',
+            'icon' => 'ri-pie-chart-line',
+            'url' => 'admin.budget-breakdowns.index',
+        ],
+        [
+            'title' => 'Documents',
+            'icon' => 'ri-file-list-line',
+            'url' => 'admin.documents.index',
+        ],
+        [
+            'title' => 'Orders',
+            'icon' => 'ri-shopping-cart-line',
+            'url' => 'admin.orders.index',
+        ],
+        [
             'title' => 'Google Anlytics',
             'icon' => 'bi bi-bar-chart-line',
             'url' => 'admin.google-analytics',

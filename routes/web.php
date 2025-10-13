@@ -34,6 +34,13 @@ use App\Http\Controllers\Admin\YatraController;
 use App\Http\Controllers\Admin\GalleryController;
 use App\Http\Controllers\Admin\TeamMemberController;
 use App\Http\Controllers\Admin\MembershipPlanController;
+use App\Http\Controllers\Admin\PageController;
+use App\Http\Controllers\Admin\SubscriberController;
+use App\Http\Controllers\Admin\DonationController;
+use App\Http\Controllers\Admin\SponsorshipTierController;
+use App\Http\Controllers\Admin\BudgetBreakdownController;
+use App\Http\Controllers\Admin\DocumentController;
+use App\Http\Controllers\Admin\OrderController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -54,6 +61,13 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => 'auth'], fu
         'gallery' => GalleryController::class,
         'team' => TeamMemberController::class,
         'memberships' => MembershipPlanController::class,
+        'cms-pages' => PageController::class,
+        'subscribers' => SubscriberController::class,
+        'donations' => DonationController::class,
+        'sponsorship-tiers' => SponsorshipTierController::class,
+        'budget-breakdowns' => BudgetBreakdownController::class,
+        'documents' => DocumentController::class,
+        'orders' => OrderController::class,
         'banners' => BannerController::class,
         'settings' => SettingController::class,
         'blogs' => BlogController::class,
@@ -119,6 +133,22 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => 'auth'], fu
     
     // Additional membership routes
     Route::post('memberships/{membership}/toggle-status', [MembershipPlanController::class, 'toggleStatus'])->name('memberships.toggle-status');
+    
+    // Additional page routes
+    Route::post('cms-pages/{cmsPage}/toggle-status', [PageController::class, 'toggleStatus'])->name('cms-pages.toggle-status');
+    
+    // Additional subscriber routes
+    Route::post('subscribers/{subscriber}/toggle-status', [SubscriberController::class, 'toggleStatus'])->name('subscribers.toggle-status');
+    Route::get('subscribers/export', [SubscriberController::class, 'export'])->name('subscribers.export');
+    
+    // Additional donation routes
+    Route::post('donations/{donation}/update-status', [DonationController::class, 'updateStatus'])->name('donations.update-status');
+    
+    // Additional sponsorship tier routes
+    Route::post('sponsorship-tiers/{sponsorshipTier}/toggle-status', [SponsorshipTierController::class, 'toggleStatus'])->name('sponsorship-tiers.toggle-status');
+    
+    // Additional order routes
+    Route::post('orders/{order}/update-status', [OrderController::class, 'updateStatus'])->name('orders.update-status');
 });
 
 require __DIR__ . '/auth.php';
