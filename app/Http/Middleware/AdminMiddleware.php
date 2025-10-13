@@ -15,11 +15,27 @@ class AdminMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!$request->user() || !$request->user()->isAdmin()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unauthorized. Admin access required.',
-            ], 403);
+        // Check if user is authenticated
+        if (!$request->user()) {
+            // Redirect to login for web requests
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized. Please login.',
+                ], 401);
+            }
+            return redirect()->route('login')->with('error', 'Please login to access admin panel.');
+        }
+
+        // Check if user has admin role
+        if (!$request->user()->isAdmin()) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized. Admin access required.',
+                ], 403);
+            }
+            return redirect()->route('login')->with('error', 'You do not have permission to access the admin panel.');
         }
 
         return $next($request);

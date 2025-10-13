@@ -35,6 +35,29 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+// API Welcome Route
+Route::get('/', function () {
+    return response()->json([
+        'status' => 'success',
+        'message' => 'Welcome to RaathBackend API',
+        'version' => '1.0.0',
+        'documentation' => 'See README_FRONTEND.md for API documentation',
+        'endpoints' => [
+            'projects' => '/api/projects',
+            'yatras' => '/api/yatras',
+            'gallery' => '/api/gallery',
+            'team' => '/api/team',
+            'products' => '/api/products',
+            'memberships' => '/api/memberships',
+            'auth' => [
+                'register' => 'POST /api/auth/register',
+                'login' => 'POST /api/auth/login',
+                'profile' => 'GET /api/auth/profile (requires auth)'
+            ]
+        ]
+    ]);
+});
+
 // Public routes
 Route::prefix('auth')->group(function () {
     Route::post('register', [AuthController::class, 'register']);

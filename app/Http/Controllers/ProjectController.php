@@ -70,7 +70,7 @@ class ProjectController extends Controller
      */
     public function rathMaking(): JsonResponse
     {
-        $project = Project::where('status', 'planning')
+        $project = Project::where('slug', 'rath-making-project')
                          ->with(['sponsorshipTiers', 'budgetBreakdowns', 'documents'])
                          ->first();
 
