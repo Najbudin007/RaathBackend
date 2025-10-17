@@ -120,11 +120,38 @@ class BlogController extends Controller
      */
     public function destroy(Blog $blog)
     {
-        if ($blog->featured_image) {
-            Storage::delete($blog->featured_image);
+        try {
+            // Delete the featured image if it exists
+            if ($blog->featured_image) {
+                Storage::delete($blog->featured_image);
+            }
+            
+            // Delete the blog record
+            $blog->delete();
+
+            // Return JSON response for AJAX requests
+            if (request()->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Blog deleted successfully!'
+                ]);
+            }
+
+            // Return redirect for regular requests
+            $notification = Str::toastMsg(config('custom.msg.delete'), 'success');
+            return redirect()->route('admin.blogs.index')->with($notification);
+            
+        } catch (\Exception $e) {
+            // Return JSON response for AJAX requests
+            if (request()->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to delete blog: ' . $e->getMessage()
+                ], 500);
+            }
+
+            // Return redirect for regular requests
+            return redirect()->back()->with('error', 'Failed to delete blog: ' . $e->getMessage());
         }
-        $blog->delete();
-        $notification = Str::toastMsg(config('custom.msg.delete'), 'success');
-        return response($notification);
     }
 }

@@ -21,13 +21,6 @@ class StoreProductRequest extends FormRequest
      */
     protected function prepareForValidation()
     {
-        // Debug: Log incoming data before validation
-        \Log::info('StoreProductRequest prepareForValidation:', [
-            'all_data' => $this->all(),
-            'files' => $this->allFiles(),
-            'method' => $this->method(),
-            'headers' => $this->headers->all()
-        ]);
 
         // Convert empty strings to null for numeric fields
         if ($this->has('price') && $this->price === '') {
@@ -130,12 +123,6 @@ class StoreProductRequest extends FormRequest
      */
     protected function failedValidation(\Illuminate\Contracts\Validation\Validator $validator)
     {
-        // Debug: Log validation failures
-        \Log::error('StoreProductRequest validation failed:', [
-            'errors' => $validator->errors()->toArray(),
-            'input_data' => $this->all(),
-            'files' => $this->allFiles()
-        ]);
 
         parent::failedValidation($validator);
     }

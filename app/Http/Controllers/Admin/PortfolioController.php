@@ -117,12 +117,39 @@ class PortfolioController extends Controller
      */
     public function destroy(Portfolio $portfolio)
     {
-        if ($portfolio->feature_image) {
-            Storage::delete($portfolio->feature_image);
+        try {
+            // Delete the feature image if it exists
+            if ($portfolio->feature_image) {
+                Storage::delete($portfolio->feature_image);
+            }
+            
+            // Delete the portfolio record
+            $portfolio->delete();
+
+            // Return JSON response for AJAX requests
+            if (request()->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Portfolio deleted successfully!'
+                ]);
+            }
+
+            // Return redirect for regular requests
+            $notification = Str::toastMsg(config('custom.msg.delete'),'success');
+            return redirect()->route('admin.portfolios.index')->with($notification);
+            
+        } catch (\Exception $e) {
+            // Return JSON response for AJAX requests
+            if (request()->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to delete portfolio: ' . $e->getMessage()
+                ], 500);
+            }
+
+            // Return redirect for regular requests
+            return redirect()->back()->with('error', 'Failed to delete portfolio: ' . $e->getMessage());
         }
-        $portfolio->delete();
-        $notification = Str::toastMsg(config('custom.msg.delete'),'success');
-        return response($notification);
     }
 
 }

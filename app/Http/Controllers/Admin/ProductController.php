@@ -62,11 +62,6 @@ class ProductController extends Controller
         try {
             $categories = Category::where('is_active', true)->orderBy('name')->get();
             
-            // Debug: Log categories data
-            \Log::info('Categories loaded for product create:', [
-                'count' => $categories->count(),
-                'categories' => $categories->toArray()
-            ]);
 
             // If this is an AJAX request, return JSON for debugging
             if (request()->wantsJson() || request()->ajax()) {
@@ -84,10 +79,6 @@ class ProductController extends Controller
             return view('admin.pages.products.create', compact('categories'));
             
         } catch (\Exception $e) {
-            \Log::error('Error in product create method:', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
 
             if (request()->wantsJson() || request()->ajax()) {
                 return response()->json([
@@ -108,18 +99,6 @@ class ProductController extends Controller
     public function store(StoreProductRequest $request)
     {
         try {
-            // Debug: Log all request data
-            \Log::info('Product Store Request Data:', [
-                'all_data' => $request->all(),
-                'files' => $request->allFiles(),
-                'validated_data' => $request->validated(),
-                'has_files' => [
-                    'image' => $request->hasFile('image'),
-                    'images' => $request->hasFile('images'),
-                    'image_count' => $request->hasFile('images') ? count($request->file('images')) : 0
-                ]
-            ]);
-
             $data = $request->validated();
 
             // Generate slug if not provided
@@ -132,7 +111,6 @@ class ProductController extends Controller
             // Handle main image upload
             if ($request->hasFile('image')) {
                 $data['image'] = $request->file('image')->store('products', 'public');
-                \Log::info('Main image uploaded:', ['path' => $data['image']]);
             }
 
             // Handle multiple images upload
@@ -142,7 +120,6 @@ class ProductController extends Controller
                     $imagePaths[] = $image->store('products/gallery', 'public');
                 }
                 $data['images'] = $imagePaths;
-                \Log::info('Gallery images uploaded:', ['paths' => $imagePaths]);
             }
 
             // Set sort order if not provided
@@ -154,12 +131,7 @@ class ProductController extends Controller
             $data['is_active'] = $request->has('is_active');
             $data['is_featured'] = $request->has('is_featured');
 
-            // Debug: Log final data before creation
-            \Log::info('Final data before Product::create:', $data);
-
             $product = Product::create($data);
-
-            \Log::info('Product created successfully:', ['product_id' => $product->id]);
 
             // Return JSON response for debugging
             if ($request->wantsJson() || $request->ajax()) {
@@ -180,10 +152,6 @@ class ProductController extends Controller
                 ->with('success', 'Product created successfully!');
 
         } catch (\Illuminate\Validation\ValidationException $e) {
-            \Log::error('Validation failed:', [
-                'errors' => $e->errors(),
-                'input' => $request->all()
-            ]);
 
             if ($request->wantsJson() || $request->ajax()) {
                 return response()->json([
@@ -197,11 +165,6 @@ class ProductController extends Controller
             throw $e;
 
         } catch (\Exception $e) {
-            \Log::error('Product creation failed:', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-                'input' => $request->all()
-            ]);
 
             if ($request->wantsJson() || $request->ajax()) {
                 return response()->json([

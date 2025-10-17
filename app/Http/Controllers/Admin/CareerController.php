@@ -113,11 +113,38 @@ class CareerController extends Controller
      */
     public function destroy(Career $career)
     {
-        if ($career->image) {
-            Storage::delete($career->image);
+        try {
+            // Delete the image if it exists
+            if ($career->image) {
+                Storage::delete($career->image);
+            }
+            
+            // Delete the career record
+            $career->delete();
+
+            // Return JSON response for AJAX requests
+            if (request()->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Career deleted successfully!'
+                ]);
+            }
+
+            // Return redirect for regular requests
+            $notification = Str::toastMsg(config('custom.msg.delete'), 'success');
+            return redirect()->route('admin.careers.index')->with($notification);
+            
+        } catch (\Exception $e) {
+            // Return JSON response for AJAX requests
+            if (request()->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to delete career: ' . $e->getMessage()
+                ], 500);
+            }
+
+            // Return redirect for regular requests
+            return redirect()->back()->with('error', 'Failed to delete career: ' . $e->getMessage());
         }
-        $career->delete();
-        $notification = Str::toastMsg(config('custom.msg.delete'), 'success');
-        return response($notification);
     }
 }

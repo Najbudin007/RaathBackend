@@ -65,7 +65,6 @@ class DepartmentController extends Controller
     public function update(DepartmentRequest $request, Department $department)
     {
         $data = $request->validated();
-        dd($data);
         // if ($request->hasFile('icon')) {
         //     if ($department->icon) {
         //         Storage::delete($department->icon);
