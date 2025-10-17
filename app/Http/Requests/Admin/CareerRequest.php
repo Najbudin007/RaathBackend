@@ -29,7 +29,7 @@ class CareerRequest extends FormRequest
             'job_type' => ['required', 'string', 'max:255'],
             'position_id' => ['required', 'integer'],
             'description' => ['required', 'max:25000'],
-            'status' => ['required', 'boolean'],
+            'status' => ['required', 'in:0,1'],
             'expired_date' => ['required', 'date'],
             'image' => ['nullable', 'mimes:jpg,jpeg,gif,png', 'max:10000']
         ];

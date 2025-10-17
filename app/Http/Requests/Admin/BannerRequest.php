@@ -27,14 +27,14 @@ class BannerRequest extends FormRequest
 
         $rules =  [
             'title' => ['nullable'],
-            'status' => ['required','boolean'],
+            'status' => ['required','in:0,1'],
             'description' => ['nullable'],
             'url' => ['nullable'],
             
         ];
         if($this->getMethod() =='POST') {
             $rules += [
-                'image' => ['required','mimes:jpg,jpeg,gif,png']
+                'image' => ['nullable','mimes:jpg,jpeg,gif,png']
             ];
         }
         if($this->getMethod() =='PUT') {

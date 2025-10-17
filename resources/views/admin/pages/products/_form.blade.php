@@ -89,7 +89,7 @@
                             <input type="number" step="0.01" min="0" class="form-control @error('sale_price') is-invalid @enderror" 
                                    id="sale_price" name="sale_price" value="{{ old('sale_price', $product->sale_price ?? '') }}">
                         </div>
-                        <small class="text-muted">Leave empty for no sale</small>
+                        <small class="text-muted">Leave empty for no sale. Must be less than regular price.</small>
                         @error('sale_price')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -118,7 +118,7 @@
                     <label for="images" class="form-label">Additional Images</label>
                     <input type="file" class="form-control @error('images.*') is-invalid @enderror" 
                            id="images" name="images[]" accept="image/*" multiple>
-                    <small class="text-muted">Select multiple images for product gallery (max 2MB each)</small>
+                    <small class="text-muted">Select multiple images for product gallery (max 5MB each)</small>
                     @error('images.*')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
@@ -169,7 +169,7 @@
                     @endif
                     <input type="file" class="form-control @error('image') is-invalid @enderror" 
                            id="image" name="image" accept="image/*">
-                    <small class="text-muted">Main product image (max 2MB)</small>
+                    <small class="text-muted">Main product image (max 5MB)</small>
                     @error('image')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
@@ -190,7 +190,7 @@
             <div class="card-body">
                 <div class="mb-3">
                     <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" id="is_active" name="is_active" 
+                        <input class="form-check-input" type="checkbox" id="is_active" name="is_active" value="1"
                                {{ old('is_active', $product->is_active ?? true) ? 'checked' : '' }}>
                         <label class="form-check-label" for="is_active">
                             Active Product
@@ -201,7 +201,7 @@
 
                 <div class="mb-3">
                     <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" id="is_featured" name="is_featured" 
+                        <input class="form-check-input" type="checkbox" id="is_featured" name="is_featured" value="1"
                                {{ old('is_featured', $product->is_featured ?? false) ? 'checked' : '' }}>
                         <label class="form-check-label" for="is_featured">
                             Featured Product
@@ -230,6 +230,56 @@
 
 @push('scripts')
 <script>
+    // Enhanced form submission debugging
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.querySelector('form');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                console.log('Form is being submitted...');
+                
+                // Debug: Log all form data
+                const formData = new FormData(form);
+                console.log('Form Data:');
+                for (let [key, value] of formData.entries()) {
+                    if (value instanceof File) {
+                        console.log(`${key}: File(${value.name}, ${value.size} bytes, ${value.type})`);
+                    } else {
+                        console.log(`${key}: ${value}`);
+                    }
+                }
+                
+                // Check if required fields are filled
+                const requiredFields = ['category_id', 'name', 'price'];
+                const missingFields = [];
+                
+                requiredFields.forEach(field => {
+                    const element = form.querySelector(`[name="${field}"]`);
+                    if (!element || !element.value.trim()) {
+                        missingFields.push(field);
+                    }
+                });
+                
+                if (missingFields.length > 0) {
+                    console.error('Missing required fields:', missingFields);
+                    alert('Please fill in all required fields: ' + missingFields.join(', '));
+                    e.preventDefault();
+                    return false;
+                }
+                
+                // Check if category is selected
+                const categorySelect = form.querySelector('[name="category_id"]');
+                if (!categorySelect.value) {
+                    console.error('No category selected');
+                    alert('Please select a category');
+                    e.preventDefault();
+                    return false;
+                }
+                
+                console.log('Form validation passed, submitting...');
+            });
+        }
+    });
+
     // Auto-generate slug from name
     document.getElementById('name').addEventListener('input', function() {
         const slugField = document.getElementById('slug');

@@ -28,7 +28,7 @@ class TeamRequest extends FormRequest
             'name' => ['required', 'max:255'],
             'position' => ['required', 'string', 'max:255'],
             'description' => ['required', 'max:50000'],
-            'status' => ['required', 'boolean'],
+            'status' => ['required', 'in:0,1'],
             'email' => ['nullable','email', 'max:255'],
             'image' => ['nullable', 'mimes:jpg,jpeg,gif,png', 'max:10000'],
             'facebook' => ['nullable','url','max:255'],

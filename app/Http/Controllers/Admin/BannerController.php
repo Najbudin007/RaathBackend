@@ -46,13 +46,18 @@ class BannerController extends Controller
      */
     public function store(BannerRequest $request)
     {
-        Banner::create([
+        $data = [
             'title' => $request->title,
             'url' => $request->url,
             'status' => $request->status,
             'description' => $request->description,
-            'image' => $request->file('image')->store('banners','public')
-        ]);
+        ];
+
+        if ($request->hasFile('image')) {
+            $data['image'] = $request->file('image')->store('banners', 'public');
+        }
+
+        Banner::create($data);
         $notification = Str::toastMsg(config('custom.msg.create'),'success');
         return redirect()->route('admin.banners.index')->with($notification);
     }
@@ -124,13 +129,64 @@ class BannerController extends Controller
      */
     public function destroy(Banner $banner)
     {
-        $banner->delete();
+        try {
+            // Delete the image file if it exists
+            if($banner->image != null && Storage::disk('public')->exists($banner->image)) {
+                Storage::disk('public')->delete($banner->image);
+            }
+            
+            // Delete the banner record
+            $banner->delete();
 
-        if($banner->image != null && Storage::disk('public')->exists($banner->image)) {
-            Storage::disk('public')->delete($banner->image);
+            // Return JSON response for AJAX requests
+            if (request()->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Banner deleted successfully!'
+                ]);
+            }
+
+            // Return redirect for regular requests
+            $notification = Str::toastMsg(config('custom.msg.delete'),'success');
+            return redirect()->route('admin.banners.index')->with($notification);
+            
+        } catch (\Exception $e) {
+            // Return JSON response for AJAX requests
+            if (request()->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to delete banner: ' . $e->getMessage()
+                ], 500);
+            }
+
+            // Return redirect for regular requests
+            return redirect()->back()->with('error', 'Failed to delete banner: ' . $e->getMessage());
         }
-        $notification = Str::toastMsg(config('custom.msg.delete'),'success');
-        $notification = Str::toastMsg(config('custom.msg.delete'),'success');
+    }
+
+    /**
+     * Toggle banner status
+     */
+    public function toggleStatus(Banner $banner)
+    {
+        try {
+            $banner->update([
+                'status' => $banner->status ? 0 : 1
+            ]);
+
+            $status = $banner->status ? 'activated' : 'deactivated';
+
+            return response()->json([
+                'success' => true,
+                'message' => "Banner {$status} successfully!"
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update banner status.'
+            ], 500);
+        }
     }
 
     public function getPriority()

@@ -7,6 +7,22 @@ use Illuminate\Validation\Rules\Password;
 
 class UpdateUserRequest extends FormRequest
 {
+    
+    /**
+     * Prepare the data for validation.
+     */
+    protected function prepareForValidation()
+    {
+        // Convert unchecked checkboxes to false
+        if (!$this->has('is_active')) {
+            $this->merge(['is_active' => false]);
+        }
+        if (!$this->has('is_featured')) {
+            $this->merge(['is_featured' => false]);
+        }
+    }
+
+
     /**
      * Determine if the user is authorized to make this request.
      */

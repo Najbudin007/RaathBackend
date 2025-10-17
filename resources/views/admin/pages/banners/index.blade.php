@@ -49,27 +49,37 @@
                                         <td>{{ $banner->title }}</td>
                                         <td> <img src="{{Str::storage_path($banner->image)}}" alt="" height="100"></td>
                                         <td>
-                                            <span
-                                                class="badge bg-{{ $banner->status == 1 ? 'success' : 'danger' }}">{{ \App\Enums\StatusEnum::name($banner->status) }}
-                                            </span>
+                                            <div class="d-flex align-items-center">
+                                                <span
+                                                    class="badge bg-{{ $banner->status == 1 ? 'success' : 'danger' }} me-2">{{ \App\Enums\StatusEnum::name($banner->status) }}
+                                                </span>
+                                                <button type="button"
+                                                    onclick="toggleBannerStatus('{{ route('admin.banners.toggle-status', $banner->id) }}', {{ $key }}, '{{ csrf_token() }}', {{ $banner->status ? 'true' : 'false' }})"
+                                                    class="btn btn-{{ $banner->status ? 'warning' : 'success' }} btn-sm" 
+                                                    title="{{ $banner->status ? 'Deactivate' : 'Activate' }} Banner">
+                                                    <i class="ri-{{ $banner->status ? 'pause' : 'play' }}-line"></i>
+                                                </button>
+                                            </div>
                                         </td>
                                         <td>
-
-                                            <div class="btn-group">
+                                            <div class="btn-group" role="group">
                                                 <a href="{{ route('admin.banners.edit', $banner->id) }}"
-                                                    class="btn btn-primary btn-sm" title="Edit"><i
-                                                        class="fa fa-edit"></i></a>
+                                                    class="btn btn-primary btn-sm" title="Edit Banner">
+                                                    <i class="ri-edit-line"></i> Edit
+                                                </a>
                                                 <button type="button"
                                                     onclick="confirmDelete('{{ route('admin.banners.destroy', $banner->id) }}', {{ $key }},'{{ csrf_token() }}')"
-                                                    class="btn btn-danger btn-sm" title="Delete"><i
-                                                        class="fa fa-times"></i></button>
+                                                    class="btn btn-danger btn-sm" title="Delete Banner">
+                                                    <i class="ri-delete-bin-line"></i> Delete
+                                                </button>
                                             </div>
-
                                         </td>
                                     </tr>
 
                                 @empty
-                                    <td colspan="3">No Record found</td>
+                                    <tr>
+                                        <td colspan="5" class="text-center">No banners found</td>
+                                    </tr>
                                 @endforelse
                             </tbody>
                         </table>
@@ -90,4 +100,61 @@
 @endsection
 @section('scripts')
     <script src="{{ asset('assets/js/ajax-delete.js') }}"></script>
+    <script>
+        // Toggle banner status function
+        function toggleBannerStatus(url, key, token, currentStatus) {
+            const action = currentStatus === 'true' ? 'deactivate' : 'activate';
+            
+            Swal.fire({
+                title: `Are you sure?`,
+                text: `Do you want to ${action} this banner?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: `Yes, ${action} it!`
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        type: "POST",
+                        url: url,
+                        data: {
+                            '_token': token,
+                            '_method': 'POST'
+                        },
+                        success: function (data) {
+                            if (data.success) {
+                                // Reload the page to update the status
+                                location.reload();
+                                Swal.fire(
+                                    'Success!',
+                                    data.message || `Banner ${action}d successfully.`,
+                                    'success'
+                                );
+                            } else {
+                                Swal.fire(
+                                    'Error!',
+                                    data.message || `Failed to ${action} banner.`,
+                                    'error'
+                                );
+                            }
+                        },
+                        error: function (xhr, ajaxOptions, thrownError) {
+                            let errorMessage = `Failed to ${action} banner.`;
+                            
+                            if (xhr.responseJSON && xhr.responseJSON.message) {
+                                errorMessage = xhr.responseJSON.message;
+                            }
+                            
+                            Swal.fire(
+                                'Error!',
+                                errorMessage,
+                                'error'
+                            );
+                        }
+                    });
+                }
+            });
+        }
+    </script>
 @endsection

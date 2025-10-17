@@ -128,16 +128,44 @@ class ClientController extends Controller
      */
     public function destroy(Client $client)
     {
-        if ($client->icon) {
-            Storage::delete($client->icon);
-        }
+        try {
+            // Delete the icon file if it exists
+            if ($client->icon) {
+                Storage::delete($client->icon);
+            }
 
-        if ($client->logo) {
-            Storage::delete($client->logo);
+            // Delete the logo file if it exists
+            if ($client->logo) {
+                Storage::delete($client->logo);
+            }
+            
+            // Delete the client record
+            $client->delete();
+
+            // Return JSON response for AJAX requests
+            if (request()->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Client deleted successfully!'
+                ]);
+            }
+
+            // Return redirect for regular requests
+            $notification = Str::toastMsg(config('custom.msg.delete'),'success');
+            return redirect()->route('admin.clients.index')->with($notification);
+            
+        } catch (\Exception $e) {
+            // Return JSON response for AJAX requests
+            if (request()->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to delete client: ' . $e->getMessage()
+                ], 500);
+            }
+
+            // Return redirect for regular requests
+            return redirect()->back()->with('error', 'Failed to delete client: ' . $e->getMessage());
         }
-        $client->delete();
-        $notification = Str::toastMsg(config('custom.msg.delete'),'success');
-        return response($notification);
     }
 
 }

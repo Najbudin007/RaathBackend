@@ -11,6 +11,7 @@ class UpdateTeamMemberRequest extends FormRequest
         return true;
     }
 
+
     public function rules(): array
     {
         return [
@@ -23,7 +24,7 @@ class UpdateTeamMemberRequest extends FormRequest
             'facebook' => ['nullable', 'url', 'max:255'],
             'twitter' => ['nullable', 'url', 'max:255'],
             'linkedin' => ['nullable', 'url', 'max:255'],
-            'is_active' => ['boolean'],
+            'is_active' => ['nullable', 'in:0,1'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
         ];
     }

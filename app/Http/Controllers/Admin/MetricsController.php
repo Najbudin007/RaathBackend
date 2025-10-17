@@ -98,9 +98,34 @@ class MetricsController extends Controller
      */
     public function destroy(Metrics $metrics)
     {
-        $metrics->delete();
-        $notification = Str::toastMsg(config('custom.msg.delete'),'success');
-        return response($notification);
+        try {
+            // Delete the metrics record
+            $metrics->delete();
+
+            // Return JSON response for AJAX requests
+            if (request()->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Metric deleted successfully!'
+                ]);
+            }
+
+            // Return redirect for regular requests
+            $notification = Str::toastMsg(config('custom.msg.delete'),'success');
+            return redirect()->route('admin.metrics.index')->with($notification);
+            
+        } catch (\Exception $e) {
+            // Return JSON response for AJAX requests
+            if (request()->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to delete metric: ' . $e->getMessage()
+                ], 500);
+            }
+
+            // Return redirect for regular requests
+            return redirect()->back()->with('error', 'Failed to delete metric: ' . $e->getMessage());
+        }
     }
 
 }

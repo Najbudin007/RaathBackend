@@ -16,6 +16,17 @@ class StoreCategoryRequest extends FormRequest
     }
 
     /**
+     * Prepare the data for validation.
+     */
+    protected function prepareForValidation()
+    {
+        // Convert unchecked checkboxes to false
+        if (!$this->has('is_active')) {
+            $this->merge(['is_active' => false]);
+        }
+    }
+
+    /**
      * Get the validation rules that apply to the request.
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>

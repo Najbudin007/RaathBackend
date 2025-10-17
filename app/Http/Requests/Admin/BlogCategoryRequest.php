@@ -25,7 +25,7 @@ class BlogCategoryRequest extends FormRequest
     public function rules()
     {
         $rules = [
-            'status' => ['required', 'boolean'],
+            'status' => ['required', 'in:0,1'],
         ];
 
         if ($this->isMethod('POST')) {

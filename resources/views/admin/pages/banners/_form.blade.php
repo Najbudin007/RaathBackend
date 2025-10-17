@@ -45,10 +45,10 @@
         </div>
 
         <div class="form-group row">
-            <label for="image" class="col-sm-2 col-form-label">Banner Image <span class="required">*</span></label>
+            <label for="image" class="col-sm-2 col-form-label">Banner Image</label>
             <div class="col-sm-10">
                 <div class="custom-file">
-                    <input id="post-image" type="file" accept="image/*" class="custom-file-input @error('image') is-invalid @enderror" name="image" placeholder="Upload Image" autocomplete="image">
+                    <input id="image" type="file" accept="image/*" class="custom-file-input @error('image') is-invalid @enderror" name="image" placeholder="Upload Image" autocomplete="image">
                     <small class="text-danger">Appropriate Image Dimension: 1024x by 720px</small>
                     <label class="custom-file-label" for="image">Choose Image</label>
                     @error('image')

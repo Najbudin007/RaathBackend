@@ -96,11 +96,37 @@ class JobRoleController extends Controller
      * @param  \App\Models\JobRole  $jobRole
      * @return \Illuminate\Http\Response
      */
+    
     public function destroy(JobRole $jobRole)
     {
-        $jobRole->delete();
-        $notification = Str::toastMsg(config('custom.msg.delete'),'success');
-        return response($notification);
+        try {
+            // Delete the record
+            JobRole $jobRole->delete();
+
+            // Return JSON response for AJAX requests
+            if (request()->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Record deleted successfully!'
+                ]);
+            }
+
+            // Return redirect for regular requests
+            $notification = Str::toastMsg(config('custom.msg.delete'),'success');
+            return redirect()->back()->with($notification);
+            
+        } catch (\Exception $e) {
+            // Return JSON response for AJAX requests
+            if (request()->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to delete record: ' . $e->getMessage()
+                ], 500);
+            }
+
+            // Return redirect for regular requests
+            return redirect()->back()->with('error', 'Failed to delete record: ' . $e->getMessage());
+        }
     }
 
 }

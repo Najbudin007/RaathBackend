@@ -111,11 +111,38 @@ class TeamController extends Controller
      */
     public function destroy(Team $team)
     {
-        if ($team->image) {
-            Storage::delete($team->image);
+        try {
+            // Delete the image file if it exists
+            if ($team->image) {
+                Storage::delete($team->image);
+            }
+            
+            // Delete the team record
+            $team->delete();
+
+            // Return JSON response for AJAX requests
+            if (request()->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Team deleted successfully!'
+                ]);
+            }
+
+            // Return redirect for regular requests
+            $notification = Str::toastMsg(config('custom.msg.delete'), 'success');
+            return redirect()->route('admin.teams.index')->with($notification);
+            
+        } catch (\Exception $e) {
+            // Return JSON response for AJAX requests
+            if (request()->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to delete team: ' . $e->getMessage()
+                ], 500);
+            }
+
+            // Return redirect for regular requests
+            return redirect()->back()->with('error', 'Failed to delete team: ' . $e->getMessage());
         }
-        $team->delete();
-        $notification = Str::toastMsg(config('custom.msg.delete'), 'success');
-        return response($notification);
     }
 }

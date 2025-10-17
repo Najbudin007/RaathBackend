@@ -24,7 +24,7 @@ class BlogRequest extends FormRequest
         return [
             'title' => 'required|string|max:255',
             'tags' => 'required|array',
-            'status' => 'required|boolean',
+            'status' => 'required|in:0,1',
             'blog_category_id' => 'required',
             'content' => 'required|string',
             'meta_title' => 'nullable|string|max:255',

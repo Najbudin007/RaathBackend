@@ -30,7 +30,7 @@ class DepartmentRequest extends FormRequest
             'requirements.*' => ['string', 'max:255'],
             'time' => ['nullable', 'integer'],
             'unit' => ['nullable', 'string'],
-            'status' => ['required', 'boolean'],
+            'status' => ['required', 'in:0,1'],
         ];
 
     }

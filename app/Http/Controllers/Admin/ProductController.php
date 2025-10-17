@@ -59,8 +59,47 @@ class ProductController extends Controller
      */
     public function create()
     {
-        $categories = Category::where('is_active', true)->orderBy('name')->get();
-        return view('admin.pages.products.create', compact('categories'));
+        try {
+            $categories = Category::where('is_active', true)->orderBy('name')->get();
+            
+            // Debug: Log categories data
+            \Log::info('Categories loaded for product create:', [
+                'count' => $categories->count(),
+                'categories' => $categories->toArray()
+            ]);
+
+            // If this is an AJAX request, return JSON for debugging
+            if (request()->wantsJson() || request()->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'categories' => $categories,
+                    'debug' => [
+                        'categories_count' => $categories->count(),
+                        'request_type' => request()->method(),
+                        'request_headers' => request()->headers->all()
+                    ]
+                ]);
+            }
+
+            return view('admin.pages.products.create', compact('categories'));
+            
+        } catch (\Exception $e) {
+            \Log::error('Error in product create method:', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            if (request()->wantsJson() || request()->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to load create form: ' . $e->getMessage()
+                ], 500);
+            }
+
+            return redirect()
+                ->route('admin.products.index')
+                ->with('error', 'Failed to load product creation form');
+        }
     }
 
     /**
@@ -68,43 +107,118 @@ class ProductController extends Controller
      */
     public function store(StoreProductRequest $request)
     {
-        $data = $request->validated();
+        try {
+            // Debug: Log all request data
+            \Log::info('Product Store Request Data:', [
+                'all_data' => $request->all(),
+                'files' => $request->allFiles(),
+                'validated_data' => $request->validated(),
+                'has_files' => [
+                    'image' => $request->hasFile('image'),
+                    'images' => $request->hasFile('images'),
+                    'image_count' => $request->hasFile('images') ? count($request->file('images')) : 0
+                ]
+            ]);
 
-        // Generate slug if not provided
-        if (empty($data['slug'])) {
-            $data['slug'] = Str::slug($data['name']);
-        } else {
-            $data['slug'] = Str::slug($data['slug']);
-        }
+            $data = $request->validated();
 
-        // Handle main image upload
-        if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('products', 'public');
-        }
-
-        // Handle multiple images upload
-        if ($request->hasFile('images')) {
-            $imagePaths = [];
-            foreach ($request->file('images') as $image) {
-                $imagePaths[] = $image->store('products/gallery', 'public');
+            // Generate slug if not provided
+            if (empty($data['slug'])) {
+                $data['slug'] = Str::slug($data['name']);
+            } else {
+                $data['slug'] = Str::slug($data['slug']);
             }
-            $data['images'] = $imagePaths;
+
+            // Handle main image upload
+            if ($request->hasFile('image')) {
+                $data['image'] = $request->file('image')->store('products', 'public');
+                \Log::info('Main image uploaded:', ['path' => $data['image']]);
+            }
+
+            // Handle multiple images upload
+            if ($request->hasFile('images')) {
+                $imagePaths = [];
+                foreach ($request->file('images') as $image) {
+                    $imagePaths[] = $image->store('products/gallery', 'public');
+                }
+                $data['images'] = $imagePaths;
+                \Log::info('Gallery images uploaded:', ['paths' => $imagePaths]);
+            }
+
+            // Set sort order if not provided
+            if (empty($data['sort_order'])) {
+                $data['sort_order'] = Product::max('sort_order') + 1;
+            }
+
+            // Handle boolean fields
+            $data['is_active'] = $request->has('is_active');
+            $data['is_featured'] = $request->has('is_featured');
+
+            // Debug: Log final data before creation
+            \Log::info('Final data before Product::create:', $data);
+
+            $product = Product::create($data);
+
+            \Log::info('Product created successfully:', ['product_id' => $product->id]);
+
+            // Return JSON response for debugging
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Product created successfully!',
+                    'product_id' => $product->id,
+                    'debug_data' => [
+                        'validated_data' => $request->validated(),
+                        'final_data' => $data,
+                        'files_received' => $request->allFiles()
+                    ]
+                ]);
+            }
+
+            return redirect()
+                ->route('admin.products.index')
+                ->with('success', 'Product created successfully!');
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \Log::error('Validation failed:', [
+                'errors' => $e->errors(),
+                'input' => $request->all()
+            ]);
+
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed',
+                    'errors' => $e->errors(),
+                    'input_data' => $request->all()
+                ], 422);
+            }
+
+            throw $e;
+
+        } catch (\Exception $e) {
+            \Log::error('Product creation failed:', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'input' => $request->all()
+            ]);
+
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Product creation failed: ' . $e->getMessage(),
+                    'debug_data' => [
+                        'error' => $e->getMessage(),
+                        'input_data' => $request->all()
+                    ]
+                ], 500);
+            }
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Failed to create product: ' . $e->getMessage());
         }
-
-        // Set sort order if not provided
-        if (empty($data['sort_order'])) {
-            $data['sort_order'] = Product::max('sort_order') + 1;
-        }
-
-        // Handle boolean fields
-        $data['is_active'] = $request->has('is_active');
-        $data['is_featured'] = $request->has('is_featured');
-
-        $product = Product::create($data);
-
-        return redirect()
-            ->route('admin.products.index')
-            ->with('success', 'Product created successfully!');
     }
 
     /**
@@ -315,5 +429,6 @@ class ProductController extends Controller
             ], 500);
         }
     }
+
 }
 

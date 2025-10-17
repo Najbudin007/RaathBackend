@@ -29,7 +29,7 @@ class PortfolioRequest extends FormRequest
             // 'slug' => ['required','max:255','string'],
             'category_id' => ['required','integer'],
             'description' => ['required','string'],
-            'status' => ['required','boolean'],
+            'status' => ['required','in:0,1'],
             'case_study' => ['nullable','string'],
             'feature_image' => ['nullable', 'mimes:jpg,jpeg,gif,png','max:10000']
 

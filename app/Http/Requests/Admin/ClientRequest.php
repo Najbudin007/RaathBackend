@@ -27,7 +27,7 @@ class ClientRequest extends FormRequest
         $rules = [
             'name' => ['required','string','max:255'],
             'designation' => ['required','string','max:255'],
-            'status' => ['required','boolean'],
+            'status' => ['required','in:0,1'],
             'description' => ['nullable','string','max:500'],
             'rating' => ['required','numeric','min:1','max:5'],
             'icon' => ['nullable', 'mimes:jpg,jpeg,gif,png'],

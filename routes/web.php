@@ -113,6 +113,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => 'auth'], fu
     Route::post('products/{product}/toggle-featured', [ProductController::class, 'toggleFeatured'])->name('products.toggle-featured');
     Route::post('products/{product}/remove-image', [ProductController::class, 'removeImage'])->name('products.remove-image');
     
+    
     // Additional project routes
     Route::post('projects/{project}/toggle-featured', [ProjectController::class, 'toggleFeatured'])->name('projects.toggle-featured');
     Route::post('projects/{project}/update-status', [ProjectController::class, 'updateStatus'])->name('projects.update-status');
@@ -130,6 +131,9 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => 'auth'], fu
     
     // Additional team routes
     Route::post('team/{team}/toggle-status', [TeamMemberController::class, 'toggleStatus'])->name('team.toggle-status');
+    
+    // Additional banner routes
+    Route::post('banners/{banner}/toggle-status', [BannerController::class, 'toggleStatus'])->name('banners.toggle-status');
     
     // Additional membership routes
     Route::post('memberships/{membership}/toggle-status', [MembershipPlanController::class, 'toggleStatus'])->name('memberships.toggle-status');
